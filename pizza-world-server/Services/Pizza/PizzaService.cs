@@ -24,10 +24,10 @@ public class PizzaService : IPizzaService
 
     public async Task<ServiceResponse<List<GetPizzaDto>>> GetAllAsync()
     {
-        
+
         var pizzas = await _context.Pizzas.ToListAsync();
         var pizzasDto = pizzas.Select(p => _mapper.Map<GetPizzaDto>(p)).ToList();
-        
+
         return new ServiceResponse<List<GetPizzaDto>> { Data = pizzasDto };
     }
 
@@ -49,16 +49,16 @@ public class PizzaService : IPizzaService
         var userId = _identityService.GetUserId();
 
         var pizza = new CreatePizzaRequestModel
-        { 
-            Name= model.Name,
-            Description= model.Description,
-            ImageUrl= model.ImageUrl,
-            IsGlutenFree= model.IsGlutenFree,
+        {
+            Name = model.Name,
+            Description = model.Description,
+            ImageUrl = model.ImageUrl,
+            IsGlutenFree = model.IsGlutenFree,
             ApplicationUserId = userId,
         };
 
         await _context.Pizzas.AddAsync(_mapper.Map<Pizza>(pizza));
-        
+
         await _context.SaveChangesAsync();
 
         response.Data = pizza;
@@ -116,6 +116,19 @@ public class PizzaService : IPizzaService
 
         return response;
     }
+
+    public async Task<IEnumerable<PizzaListingResponseModel>> ByUser(string userId)
+        => await _context
+            .Pizzas
+            .Where(x => x.ApplicationUserId == userId)
+            .Select(p => new PizzaListingResponseModel
+            {
+                Id = p.Id,
+                ImageUrl = p.ImageUrl,
+                IsGlutenFree = p.IsGlutenFree,
+                Name = p.Name,
+            })
+            .ToListAsync();
 }
 
 //public static List<Pizza> GetAll() => Pizzas;

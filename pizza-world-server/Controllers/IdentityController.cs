@@ -14,7 +14,7 @@ public class IdentityController : ApiController
         _identityService = identityService;
     }
 
-    [Route(nameof(Login))]
+    [HttpPost(nameof(Login))]
     public IActionResult Login(AuthenticateRequest model)
     {
         var response = _identityService.Authenticate(model);
@@ -25,7 +25,7 @@ public class IdentityController : ApiController
         return Ok(response);
     }
 
-    [Route(nameof(Register))]
+    [HttpPost(nameof(Register))]
     public async Task<IActionResult> Register(RegisterRequestModel model)
     {
         var result = await _identityService.Register(model);

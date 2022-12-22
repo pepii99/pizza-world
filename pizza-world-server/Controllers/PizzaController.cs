@@ -4,6 +4,8 @@ using pizza_hub.Dtos.Pizza;
 using pizza_hub.Data.Models.ServiceFactory;
 using pizza_hub.Models.Pizzas;
 using pizza_hub.Helpers;
+using Microsoft.Identity.Client;
+using pizza_hub.Data.Models.Identity;
 
 namespace pizza_hub.Controllers;
 
@@ -48,6 +50,16 @@ public class PizzaController : ApiController
             return NotFound();
 
         return Ok(pizza);
+    }
+
+    [CustomAuthorize]
+    [HttpGet("GetById")]
+    public async Task<IEnumerable<PizzaListingResponseModel>> ByUserId()
+    {
+        var user = (ApplicationUser)HttpContext.Items["User"];
+
+        return await _pizzaService.ByUser(user.Id);
+        
     }
 
     [CustomAuthorize]
