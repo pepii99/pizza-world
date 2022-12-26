@@ -14,8 +14,8 @@ public class AutoMapperProfile : Profile
         CreateMap<Pizza, GetPizzaDto>();
         CreateMap<GetPizzaDto, Pizza>();
 
-        CreateMap<Pizza, CreatePizzaRequestModel>();
-        CreateMap<CreatePizzaRequestModel, Pizza>();
+        CreateMap<Pizza, CreatePizzaModel>();
+        CreateMap<CreatePizzaModel, Pizza>();
 
         CreateMap<ApplicationUser, GetUserDto>();
         CreateMap<GetUserDto, ApplicationUser>();

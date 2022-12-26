@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using pizza_hub.Data;
 using pizza_hub.Data.Models.Identity;
 
-namespace pizza_hub.Infrastructure;
+namespace pizza_hub.Infrastructure.Extensions;
 
 public static class ServiceCollectionExtensions
 {

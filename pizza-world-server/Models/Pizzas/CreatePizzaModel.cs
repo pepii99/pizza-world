@@ -1,13 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿namespace pizza_hub.Models.Pizzas;
+
+using System.ComponentModel.DataAnnotations;
 using static pizza_hub.Data.Validation.Pizza;
 
-namespace pizza_hub.Models.Pizzas;
-
-public class CreatePizzaRequestModel
+public class CreatePizzaModel
 {
     [Required]
     public string? Name { get; set; }
 
+    [Required]
     [MaxLength(MaxDescriptionLenght)]
     public string? Description { get; set; }
 

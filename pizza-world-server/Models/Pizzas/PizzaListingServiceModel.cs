@@ -1,7 +1,7 @@
 ﻿
 namespace pizza_hub.Models.Pizzas
 {
-    public class PizzaListingResponseModel
+    public class PizzaListingServiceModel
     {
         public int Id { get; set; }
         public string? Name { get; set; }

@@ -8,13 +8,13 @@ public interface IPizzaService
 {
     Task<ServiceResponse<List<GetPizzaDto>>> GetAllAsync();
 
-    Task<ServiceResponse<GetPizzaDto>> GetPizzaByIdAsync(int id);
+    Task<ServiceResponse<PizzaDetailsServiceModel>> Details(int id);
 
-    Task<ServiceResponse<CreatePizzaRequestModel>> CreateNewPizza(CreatePizzaRequestModel model);
+    Task<ServiceResponse<CreatePizzaModel>> CreateNewPizza(CreatePizzaModel model);
 
-    Task<ServiceResponse<GetPizzaDto>> UpdatePizzaAsync(UpdatePizzaDto model);
+    Task<ServiceResponse<UpdatePizzaRequestModel>> Update(UpdatePizzaRequestModel model, string userId);
 
-    Task<ServiceResponse<GetPizzaDto>> DeletePizzaAsync(int id);
+    Task<ServiceResponse<GetPizzaDto>> Delete(int id);
 
-    Task<IEnumerable<PizzaListingResponseModel>> ByUser(string userId); 
+    Task<IEnumerable<PizzaListingServiceModel>> ByUser(string userId); 
 }

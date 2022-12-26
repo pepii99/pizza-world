@@ -1,11 +1,14 @@
 namespace pizza_hub.Data.Models.Pizza;
+
 using System.ComponentModel.DataAnnotations;
 using pizza_hub.Data.Models.Identity;
-
 using static Validation.Pizza;
+
 public class Pizza
 {
     public int Id { get; set; }
+
+    [Required]
     public string? Name { get; set; }
 
     [Required]

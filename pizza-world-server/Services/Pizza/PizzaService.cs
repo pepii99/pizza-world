@@ -11,44 +11,50 @@ using pizza_hub.Services.Identity;
 
 public class PizzaService : IPizzaService
 {
-    private readonly ApplicationDbContext _context;
+    private readonly ApplicationDbContext _data;
     private readonly IMapper _mapper;
     private readonly IIdentityService _identityService;
 
     public PizzaService(ApplicationDbContext context, IMapper mapper, IIdentityService identityService)
     {
         _mapper = mapper;
-        _context = context;
+        _data = context;
         _identityService = identityService;
     }
 
     public async Task<ServiceResponse<List<GetPizzaDto>>> GetAllAsync()
     {
 
-        var pizzas = await _context.Pizzas.ToListAsync();
+        var pizzas = await _data.Pizzas.ToListAsync();
         var pizzasDto = pizzas.Select(p => _mapper.Map<GetPizzaDto>(p)).ToList();
 
         return new ServiceResponse<List<GetPizzaDto>> { Data = pizzasDto };
     }
 
-    public async Task<ServiceResponse<GetPizzaDto>> GetPizzaByIdAsync(int id)
+    public async Task<ServiceResponse<PizzaDetailsServiceModel>> Details(int id)
     {
-        var pizza = await _context.Pizzas.FindAsync(id);
+        var response = ServiceResponseFactory<PizzaDetailsServiceModel>.CreateServiceResponse();
+        var pizza = await _data.Pizzas.FindAsync(id);
 
-        var response = ServiceResponseFactory<GetPizzaDto>.CreateServiceResponse();
+        if (pizza == null)
+        {
+            response.Success = false;
+            response.Message = "Pizza not found";
+            return response;
+        }
 
-        response.Data = _mapper.Map<GetPizzaDto>(pizza);
+        response.Data = _mapper.Map<PizzaDetailsServiceModel>(pizza);
 
         return response;
     }
 
-    public async Task<ServiceResponse<CreatePizzaRequestModel>> CreateNewPizza(CreatePizzaRequestModel model)
+    public async Task<ServiceResponse<CreatePizzaModel>> CreateNewPizza(CreatePizzaModel model)
     {
-        var response = ServiceResponseFactory<CreatePizzaRequestModel>.CreateServiceResponse();
+        var response = ServiceResponseFactory<CreatePizzaModel>.CreateServiceResponse();
 
         var userId = _identityService.GetUserId();
 
-        var pizza = new CreatePizzaRequestModel
+        var pizza = new CreatePizzaModel
         {
             Name = model.Name,
             Description = model.Description,
@@ -57,37 +63,34 @@ public class PizzaService : IPizzaService
             ApplicationUserId = userId,
         };
 
-        await _context.Pizzas.AddAsync(_mapper.Map<Pizza>(pizza));
+        await _data.Pizzas.AddAsync(_mapper.Map<Pizza>(pizza));
 
-        await _context.SaveChangesAsync();
+        await _data.SaveChangesAsync();
 
         response.Data = pizza;
 
         return response;
     }
 
-    public async Task<ServiceResponse<GetPizzaDto>> UpdatePizzaAsync(UpdatePizzaDto model)
+    public async Task<ServiceResponse<UpdatePizzaRequestModel>> Update(UpdatePizzaRequestModel model, string userId = "empty")
     {
-        var response = ServiceResponseFactory<GetPizzaDto>.CreateServiceResponse();
+        var response = ServiceResponseFactory<UpdatePizzaRequestModel>.CreateServiceResponse();
 
-        try
-        {
-            var pizza = await _context.Pizzas.FindAsync(model.Id);
-            if (pizza == null)
-            {
-                response.Success = false;
-                response.Message = "Pizza not found";
-                return response;
-            }
-            pizza.Name = model.Name;
-            pizza.IsGlutenFree = model.IsGlutenFree;
-            await _context.SaveChangesAsync();
-        }
-        catch (Exception ex)
+        var pizza = await _data
+            .Pizzas
+            .Where(p => p.Id == model.Id && p.ApplicationUserId == userId)
+            .FirstOrDefaultAsync();
+
+        if (pizza == null)
         {
             response.Success = false;
-            response.Message = ex.Message;
+            response.Message = "User or pizza not correct";
+            return response;
         }
+
+        response.Success = true;
+        pizza.Description = model.Description;
+        await _data.SaveChangesAsync();
 
         return response;
     }
@@ -98,15 +101,15 @@ public class PizzaService : IPizzaService
 
         try
         {
-            var pizza = await _context.Pizzas.FindAsync(id);
+            var pizza = await _data.Pizzas.FindAsync(id);
             if (pizza == null)
             {
                 response.Success = false;
                 response.Message = "Pizza not found";
                 return response;
             }
-            _context.Pizzas.Remove(pizza);
-            await _context.SaveChangesAsync();
+            _data.Pizzas.Remove(pizza);
+            await _data.SaveChangesAsync();
         }
         catch (Exception ex)
         {
@@ -117,11 +120,11 @@ public class PizzaService : IPizzaService
         return response;
     }
 
-    public async Task<IEnumerable<PizzaListingResponseModel>> ByUser(string userId)
-        => await _context
+    public async Task<IEnumerable<PizzaListingServiceModel>> ByUser(string userId)
+        => await _data
             .Pizzas
             .Where(x => x.ApplicationUserId == userId)
-            .Select(p => new PizzaListingResponseModel
+            .Select(p => new PizzaListingServiceModel
             {
                 Id = p.Id,
                 ImageUrl = p.ImageUrl,
@@ -130,32 +133,3 @@ public class PizzaService : IPizzaService
             })
             .ToListAsync();
 }
-
-//public static List<Pizza> GetAll() => Pizzas;
-
-//public static Pizza? Get(int id) => Pizzas.FirstOrDefault(p => p.Id == id);
-
-//public static void Add(Pizza pizza)
-//{
-//    pizza.Id = nextId++;
-//    Pizzas.Add(pizza);
-//}
-
-//public static void Delete(int id)
-//{
-//    var pizza = Get(id);
-//    if (pizza is null)
-//        return;
-
-//    Pizzas.Remove(pizza);
-//}
-
-//public static void Update(Pizza pizza)
-//{
-//    var index = Pizzas.FindIndex(p => p.Id == pizza.Id);
-
-//    if (index == -1)
-//        return;
-
-//    Pizzas[index] = pizza;
-//}

@@ -1,7 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using pizza_hub.Data;
 using pizza_hub.Helpers;
-using pizza_hub.Infrastructure;
+using pizza_hub.Infrastructure.Extensions;
+using pizza_hub.Infrastructure.Filters;
 using pizza_hub.Services.Identity;
 using pizza_hub.Services.Pizza;
 
@@ -10,7 +11,9 @@ var services = builder.Services;
 
 services
     .AddCors()
-    .AddControllers();
+    .AddControllers(options => options
+    .Filters
+    .Add<ModelOrNotFoundActionFilter>());
 
 services.AddDbContext<ApplicationDbContext>(options =>
 {

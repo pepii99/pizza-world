@@ -24,6 +24,7 @@ const LoginPage = () => {
         .then((data) => {
           localStorage.setItem('token', data.token);
           console.log(values);
+          console.log(data);
         });
     },
   });

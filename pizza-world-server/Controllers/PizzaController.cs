@@ -4,8 +4,8 @@ using pizza_hub.Dtos.Pizza;
 using pizza_hub.Data.Models.ServiceFactory;
 using pizza_hub.Models.Pizzas;
 using pizza_hub.Helpers;
-using Microsoft.Identity.Client;
 using pizza_hub.Data.Models.Identity;
+using pizza_hub.Infrastructure.Extensions;
 
 namespace pizza_hub.Controllers;
 
@@ -21,73 +21,53 @@ public class PizzaController : ApiController
     [HttpGet("GetAll")]
     public async Task<ActionResult<ServiceResponse<List<GetPizzaDto>>>> GetAll()
     {
-        var result = await _pizzaService.GetAllAsync();
-
-        if (result == null)
-            return NotFound();
-
-        return Ok(result);
-    }
-
-    [CustomAuthorize]
-    [HttpGet("GetMessage")]
-    public async Task<ActionResult<ServiceResponse<List<GetPizzaDto>>>> GetMessage()
-    {
-        var result = await _pizzaService.GetAllAsync();
-
-        if (result == null)
-            return NotFound();
-
-        return Ok(result);
+        return await _pizzaService.GetAllAsync();
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<ServiceResponse<GetPizzaDto>>> GetSingleById(int id)
+    [CustomAuthorize]
+    public async Task<ActionResult<ServiceResponse<PizzaDetailsServiceModel>>> Details(int id)
     {
-        var pizza = await _pizzaService.GetPizzaByIdAsync(id);
-
-        if (pizza.Data == null)
-            return NotFound();
-
-        return Ok(pizza);
+        return await _pizzaService.Details(id);
     }
 
     [CustomAuthorize]
     [HttpGet("GetById")]
-    public async Task<IEnumerable<PizzaListingResponseModel>> ByUserId()
+    public async Task<IEnumerable<PizzaListingServiceModel>> ByUserId()
     {
-        var user = (ApplicationUser)HttpContext.Items["User"];
+        var user = GetUser();
 
         return await _pizzaService.ByUser(user.Id);
-        
     }
 
     [CustomAuthorize]
     [HttpPost("Create")]
-    public async Task<ActionResult<ServiceResponse<GetPizzaDto>>> Create(CreatePizzaRequestModel newPizza)
+    public async Task<ActionResult<ServiceResponse<GetPizzaDto>>> Create(CreatePizzaModel newPizza)
     {
         var result = await _pizzaService.CreateNewPizza(newPizza);
         return Created(nameof(Created), result);
     }
 
-    [HttpPut]
-    public async Task<ActionResult<ServiceResponse<GetPizzaDto>>> UpdatePizzaAsync(
-        UpdatePizzaDto model
-    )
+    [CustomAuthorize]
+    [HttpPut("Update")]
+    public async Task<ActionResult<ServiceResponse<GetPizzaDto>>> Update(UpdatePizzaRequestModel model)
     {
-        var result = await _pizzaService.UpdatePizzaAsync(model);
+        var user = GetUser();
+
+        var result = await _pizzaService.Update(model, user.Id);
 
         if (!result.Success)
         {
-            return NotFound(result);
+            return BadRequest(result);
         }
 
         return Ok(result);
     }
 
-    [HttpDelete]
-    public async Task<ActionResult<ServiceResponse<GetPizzaDto>>> DeletePizzaAsync(int id)
+    [HttpDelete("Delete")]
+    public async Task<ActionResult<ServiceResponse<GetPizzaDto>>> Delete(int id)
     {
+        var user = GetUser();
         var result = await _pizzaService.DeletePizzaAsync(id);
 
         if (!result.Success)
@@ -98,44 +78,9 @@ public class PizzaController : ApiController
         return Ok(result);
     }
 
-    // POST action
-
-    //[HttpPost]
-    //public IActionResult Create(Pizza pizza)
-    //{
-    //    PizzaService.Add(pizza);
-    //    return CreatedAtAction(nameof(Create), new { id = pizza.Id }, pizza);
-    //}
-
-    //// PUT action
-
-    //[HttpPut("{id}")]
-    //public IActionResult Update(int id, Pizza pizza)
-    //{
-    //    if (id != pizza.Id)
-    //        return BadRequest();
-
-    //    var existingPizza = PizzaService.Get(id);
-    //    if (existingPizza is null)
-    //        return NotFound();
-
-    //    PizzaService.Update(pizza);
-
-    //    return NoContent();
-    //}
-
-    //// DELETE action
-
-    //[HttpDelete("{id}")]
-    //public IActionResult Delete(int id)
-    //{
-    //    var pizza = PizzaService.Get(id);
-
-    //    if (pizza is null)
-    //        return NotFound();
-
-    //    PizzaService.Delete(id);
-
-    //    return NoContent();
-    //}
+    private ApplicationUser GetUser()
+    {
+        var user = (ApplicationUser)HttpContext.Items["User"];
+        return user;
+    }
 }
