@@ -72,14 +72,11 @@ public class PizzaService : IPizzaService
         return response;
     }
 
-    public async Task<ServiceResponse<UpdatePizzaRequestModel>> Update(UpdatePizzaRequestModel model, string userId = "empty")
+    public async Task<ServiceResponse<UpdatePizzaRequestModel>> Update(UpdatePizzaRequestModel model, string userId)
     {
         var response = ServiceResponseFactory<UpdatePizzaRequestModel>.CreateServiceResponse();
 
-        var pizza = await _data
-            .Pizzas
-            .Where(p => p.Id == model.Id && p.ApplicationUserId == userId)
-            .FirstOrDefaultAsync();
+        var pizza = await GetByIdAndUserId(model.Id, userId);
 
         if (pizza == null)
         {
@@ -95,27 +92,22 @@ public class PizzaService : IPizzaService
         return response;
     }
 
-    public async Task<ServiceResponse<GetPizzaDto>> DeletePizzaAsync(int id)
+    public async Task<ServiceResponse<GetPizzaDto>> Delete(int id, string userId)
     {
         var response = ServiceResponseFactory<GetPizzaDto>.CreateServiceResponse();
 
-        try
-        {
-            var pizza = await _data.Pizzas.FindAsync(id);
-            if (pizza == null)
-            {
-                response.Success = false;
-                response.Message = "Pizza not found";
-                return response;
-            }
-            _data.Pizzas.Remove(pizza);
-            await _data.SaveChangesAsync();
-        }
-        catch (Exception ex)
+        var pizza = await GetByIdAndUserId(id, userId);
+
+        if (pizza == null)
         {
             response.Success = false;
-            response.Message = ex.Message;
-        }
+            response.Message = "Pizza not found";
+            return response;
+        } 
+
+        response.Success = true;
+        _data.Pizzas.Remove(pizza);
+        await _data.SaveChangesAsync();
 
         return response;
     }
@@ -132,4 +124,10 @@ public class PizzaService : IPizzaService
                 Name = p.Name,
             })
             .ToListAsync();
+
+    public async Task<Pizza> GetByIdAndUserId(int id, string userId)
+        => await _data
+            .Pizzas
+            .Where(p => p.Id == id && p.ApplicationUserId == userId)
+            .FirstOrDefaultAsync();
 }

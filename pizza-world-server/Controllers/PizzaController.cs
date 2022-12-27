@@ -5,7 +5,6 @@ using pizza_hub.Data.Models.ServiceFactory;
 using pizza_hub.Models.Pizzas;
 using pizza_hub.Helpers;
 using pizza_hub.Data.Models.Identity;
-using pizza_hub.Infrastructure.Extensions;
 
 namespace pizza_hub.Controllers;
 
@@ -64,17 +63,19 @@ public class PizzaController : ApiController
         return Ok(result);
     }
 
-    [HttpDelete("Delete")]
+    [CustomAuthorize]
+    [HttpDelete("{id}")]
     public async Task<ActionResult<ServiceResponse<GetPizzaDto>>> Delete(int id)
     {
         var user = GetUser();
-        var result = await _pizzaService.DeletePizzaAsync(id);
+
+        var result = await _pizzaService.Delete(id, user.Id);
 
         if (!result.Success)
         {
-            return NotFound(result);
+            return BadRequest(result);
         }
-
+        
         return Ok(result);
     }
 

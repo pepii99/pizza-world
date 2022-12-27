@@ -14,7 +14,7 @@ public interface IPizzaService
 
     Task<ServiceResponse<UpdatePizzaRequestModel>> Update(UpdatePizzaRequestModel model, string userId);
 
-    Task<ServiceResponse<GetPizzaDto>> Delete(int id);
+    Task<ServiceResponse<GetPizzaDto>> Delete(int id, string userid);
 
     Task<IEnumerable<PizzaListingServiceModel>> ByUser(string userId); 
 }
